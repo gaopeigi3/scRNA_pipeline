@@ -1,6 +1,5 @@
 import scanpy as sc
 
-
 def run_umap(adata, n_neighbors=10, resolution=0.5):
     print("[UMAP]")
     sc.pp.scale(adata, max_value=10)
