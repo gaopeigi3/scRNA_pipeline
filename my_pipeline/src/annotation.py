@@ -3,95 +3,115 @@
 # =========================
 # 🎨 Cell type colors
 # =========================
+
 celltype_colors_dict = {
-    # ---- CD4 T ----
-    "CD4": "#8dd3c7",
-    "CD4 Memory T cells": "#66c2a5",
-    "CD4 Naive T cells": "#99d8c9",
-    "CD4 CTL T cells": "#41ae76",
-    "CD4 Exhausted T cells": "#238b45",
-    "CD4 Th1 T cells": "#005824",
-    "CD4 Th2 T cells": "#b2e2e2",
-    "CD4 Th17 T cells": "#7bccc4",
-    "CD4 Tfh T cells": "#2ca25f",
-    "Treg": "#006d2c",
 
-    # ---- CD8 T ----
-    "CD8": "#fb8072",
-    "CD8 Naive T cells": "#fdbb84",
-    "CD8 Effector Memory T cells": "#e34a33",
-    "CD8 Exhausted T cells": "#b30000",
-    "CD8 CTL T cells": "#f16913",
-    "MAIT": "#fb6a4a",
+    # =========================
+    # 🔴 T lineage（红系）
+    # =========================
+    "CD4": "#fb6a4a",
+    "CD4 Memory T cells": "#ef3b2c",
+    "CD4 Naive T cells": "#fcae91",
+    "CD4 CTL T cells": "#cb181d",
+    "CD4 Exhausted T cells": "#99000d",
+    "CD4 Th1 T cells": "#a50f15",
+    "CD4 Th2 T cells": "#fb6a4a",
+    "CD4 Th17 T cells": "#de2d26",
+    "CD4 Tfh T cells": "#fc9272",
+    "Treg": "#67000d",
 
-    # ---- B cells ----
-    "B": "#80b1d3",
-    "B intermediate": "#4eb3d3",
-    "B memory": "#2b8cbe",
-    "B naive": "#7fcdbb",
-    "Plasmablast": "#1c9099",
+    "CD8": "#f16913",
+    "CD8 Naive T cells": "#fdae6b",
+    "CD8 Effector Memory T cells": "#e6550d",
+    "CD8 Exhausted T cells": "#a63603",
+    "CD8 CTL T cells": "#d94801",
+    "MAIT": "#fd8d3c",
 
-    # ---- pre B ----
-    "pre B": "#08306b",
+    # =========================
+    # 🔵 B lineage（蓝系）
+    # =========================
+    "B": "#3182bd",
+    "B intermediate": "#6baed6",
+    "B memory": "#08519c",
+    "B naive": "#9ecae1",
+    "Plasmablast": "#08306b",
 
-    # ---- Monocytes ----
-    "Mono": "#bebada",
-    "CD14 Mono": "#9e9ac8",
-    "CD16 Mono": "#756bb1",
+    "pre B": "#4292c6",
 
-    # ---- NK ----
-    "NK": "#fccde5",
-    "NK CD56-dim": "#fa9fb5",
-    "NK Proliferating": "#dd3497",
-    "NK CD56-bright": "#980043",
+    # =========================
+    # 🌸 NK lineage（粉系）
+    # =========================
+    "NK": "#f768a1",
+    "NK CD56-dim": "#dd3497",
+    "NK Proliferating": "#ae017e",
+    "NK CD56-bright": "#7a0177",
 
-    # ---- EMPs ----
-    # ---- EMPs ----
-    "EMPs": "#fdb462", 
-    "Megakaryocyte": "#f47c3c",
-    "Erythroid progenitor": "#fed98e",
+    # =========================
+    # 🟢 Myeloid lineage（绿系）
+    # =========================
+    "Mono": "#41ae76",
+    "CD14 Mono": "#66c2a4",
+    "CD16 Mono": "#238b45",
 
-    # ---- DC ----
-    "DC": "#b3de69",
-    "ASDC": "#66c2a5",
-    "cDC1": "#31a354",
-    "cDC2": "#006d2c",
-    "pDC": "#b2df8a",
+    "GMP": "#74c476",          # 🔥 改成绿（关键）
+    "Macrophage": "#006d2c",
 
-    # ---- Progenitors / Stem cells ----
-    "HSC": "#bc80bd",
-    "MonocyticLineage": "#9e5fa8",   # 更深紫（偏分化/activated）
-    "Antigen": "#d9a8db",            # 更浅紫（更primitive/接近HSC）
-    "CLP": "#8c6bb1",
-    "GMP": "#88419d",
+    # =========================
+    # 🟣 Progenitor / Stem（紫系）
+    # =========================
+    "HSC": "#9e9ac8",
+    "CLP": "#807dba",          # lymphoid progenitor（保留紫）
+    "MonocyticLineage": "#6a51a3",
+    "Antigen": "#bcbddc",
 
-    # ---- Macrophage ----
-    "Macrophage": "#ffed6f",
+    # =========================
+    # 🟢 DC（橄榄绿，独立于Mono）
+    # =========================
+    "DC": "#8c9e3f",
+    "ASDC": "#b5cf6b",
+    "cDC1": "#637939",
+    "cDC2": "#4d5d2c",
+    "pDC": "#9c9ede",
 
-    # ---- Erythroid ----
-    "Erythroid": "#d9d9d9",
-    "Early Erythroid": "#bdbdbd",
+    # =========================
+    # ⚪ Erythroid（灰系）
+    # =========================
+    "Erythroid": "#bdbdbd",
+    "Early Erythroid": "#d9d9d9",
     "Late Erythroid": "#969696",
 
-    # "Erythroid": "#f0f0f0",                 # general / pan-erythroid (very light gray)
+    # =====（你之前注释掉的完整体系，我也帮你整理好了）=====
+    # "BFU_E": "#e0e0e0",
+    # "CFU_E": "#cccccc",
+    # "Proerythroblast_ProE": "#bdbdbd",
+    # "Basophilic_Erythroblast": "#a6a6a6",
+    # "Polychromatic_Erythroblast": "#8c8c8c",
+    # "Orthochromatic_Erythroblast": "#737373",
+    # "Reticulocyte": "#595959",
+    # "RBC_Mature_Erythrocyte": "#404040",
 
-    # "BFU_E": "#e0ecf4",                      # very early progenitor (pale blue-gray)
-    # "CFU_E": "#bfd3e6",                      # committed progenitor (light blue)
+    # =========================
+    # 🟠 EMP / Megakaryocyte（橙系）
+    # =========================
+    "EMPs": "#fdae6b",
+    "Megakaryocyte": "#e6550d",
+    "Erythroid progenitor": "#fdd0a2",
 
-    # "Proerythroblast_ProE": "#9ebcda",       # start terminal differentiation
-    # "Basophilic_Erythroblast": "#8c96c6",    # early terminal
-    # "Polychromatic_Erythroblast": "#8c6bb1", # mid terminal (more purple)
-    # "Orthochromatic_Erythroblast": "#88419d",# late terminal (deep purple)
+    # =========================
+    # 🔷 Platelets
+    # =========================
+    "Platelets": "#9ecae1",
 
-    # "Reticulocyte": "#810f7c",               # enucleated but immature (dark purple)
-    # "RBC_Mature_Erythrocyte": "#4d004b",     # mature RBC (very dark purple)
-
-    # ---- Platelets ----
-    "Platelets": "#a6cee3",
-
-    # ---- Default ----
-    "Unknown": "#999999"
+    # =========================
+    # ⚫ Default
+    # =========================
+    "Unknown": "#969696"
 }
+
+
+
+
+
 
 # =========================
 # 🧬 Marker system
