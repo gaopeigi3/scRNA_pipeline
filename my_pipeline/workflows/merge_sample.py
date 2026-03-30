@@ -56,7 +56,8 @@ def run_multi_sample(samples, params):
 
         # 🔥 必须加这三步
         sc.pp.scale(adata, max_value=10)
-        sc.tl.pca(adata, svd_solver="arpack", n_comps=50)
+        # sc.tl.pca(adata, svd_solver="arpack", n_comps=50) # pca用全部基因
+        sc.tl.pca(adata, use_highly_variable=True) # pca用HVG基因
         print("X_pca shape:", adata.obsm["X_pca"].shape)
         print("X_pca:", type(adata.obsm["X_pca"]))
         print(adata.obs["sample"].value_counts())
