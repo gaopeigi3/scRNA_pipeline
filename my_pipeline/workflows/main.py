@@ -99,7 +99,7 @@ def main():
     elif mode == "merge":
         adata = run_multi_sample(samples, params)
 
-        adata, cluster_map, summary = annotate_by_marker_voting(
+        adata, cluster_map, summary, score_df = annotate_by_marker_voting(
             adata,
             hierarchical_markers,
             threshold_main=params["annotation"]["threshold_main"],
@@ -110,6 +110,10 @@ def main():
         summary.to_csv(f"logs/merged_annotation_{timestamp}.csv")
 
         adata = apply_celltype_colors(adata, celltype_colors_dict)
+        print("Number of clusters:", adata.obs["leiden"].nunique())
+        print("HBA1" in adata.var_names)
+        print("HBA1" in adata.raw.var_names)
+        score_df.to_csv(f"logs/cluster_scores_{timestamp}.csv", index=False)
         os.makedirs("data/processed", exist_ok=True)
         adata.write("data/processed/merged.h5ad")
         # 🔥 merged

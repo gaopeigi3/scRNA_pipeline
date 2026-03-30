@@ -133,7 +133,13 @@ def compute_cluster_means(adata) -> pd.DataFrame:
     for cluster in clusters:
         idx = adata.obs["leiden"] == cluster
         # mean over cells → (1, genes)
-        means[cluster] = np.asarray(adata[idx].X.mean(axis=0)).ravel()
+        if adata.raw is not None:
+            X = adata.raw[idx].X
+        else:
+            X = adata[idx].X
+
+        means[cluster] = np.asarray(X.mean(axis=0)).ravel()
+        # means[cluster] = np.asarray(adata[idx].X.mean(axis=0)).ravel()
 
     cluster_means = pd.DataFrame(means, index=adata.var_names).T
 
@@ -142,33 +148,30 @@ def compute_cluster_means(adata) -> pd.DataFrame:
     cluster_means = cluster_means.fillna(0)
 
     return cluster_means
-
 def annotate_by_marker_voting(
     adata,
-    hierarchical_markers: Dict,
+    hierarchical_markers,
     threshold_main: float = 0.3,
     threshold_sub: float = 0.4
-) -> Tuple:
+):
+
+    import pandas as pd
 
     if "leiden" not in adata.obs:
         raise ValueError("Leiden clustering not found. Run clustering first.")
-
-    """
-    基于 hierarchical markers 的 cluster annotation
-
-    Returns:
-        adata
-        cluster_annotations (dict)
-        score_summary (DataFrame)
-    """
 
     cluster_means = compute_cluster_means(adata)
 
     cluster_annotations = {}
     cluster_scores = {}
 
+    # =========================
+    # 🔹 主循环
+    # =========================
     for cluster in cluster_means.index:
+
         lineage_scores = {}
+        subtype_scores = {}
 
         # =========================
         # 1️⃣ lineage scoring
@@ -178,52 +181,44 @@ def annotate_by_marker_voting(
             if not genes:
                 continue
 
-            # 用 median 更稳（比 mean 抗噪）
             lineage_scores[lineage] = cluster_means.loc[cluster, genes].median()
 
-        if not lineage_scores:
-            cluster_annotations[cluster] = "Unknown"
-            continue
+        # =========================
+        # 2️⃣ decision
+        # =========================
+        final_label = "Unknown"
+        best_lineage = None
+        best_score = None
 
-        best_lineage, best_score = max(lineage_scores.items(), key=lambda x: x[1])
+        if lineage_scores:
+            best_lineage, best_score = max(lineage_scores.items(), key=lambda x: x[1])
+
+            if best_score >= threshold_main:
+
+                subtypes = hierarchical_markers[best_lineage]["subtypes"]
+
+                for subtype, genes in subtypes.items():
+                    genes = [g for g in genes if g in cluster_means.columns]
+                    if genes:
+                        subtype_scores[subtype] = cluster_means.loc[cluster, genes].median()
+
+                if subtype_scores:
+                    best_sub, sub_score = max(subtype_scores.items(), key=lambda x: x[1])
+
+                    if sub_score >= threshold_sub:
+                        final_label = best_sub
+                    else:
+                        final_label = best_lineage
+                else:
+                    final_label = best_lineage
 
         # =========================
-        # 2️⃣ main threshold
+        # 3️⃣ 保存 annotation（无论如何）
         # =========================
-        if best_score < threshold_main:
-            cluster_annotations[cluster] = "Unknown"
-            continue
-
-        # =========================
-        # 3️⃣ subtype scoring
-        # =========================
-        subtypes = hierarchical_markers[best_lineage]["subtypes"]
-        subtype_scores = {}
-
-        for subtype, genes in subtypes.items():
-            genes = [g for g in genes if g in cluster_means.columns]
-            if not genes:
-                continue
-
-            subtype_scores[subtype] = cluster_means.loc[cluster, genes].median()
-
-        # =========================
-        # 4️⃣ final decision
-        # =========================
-        if subtype_scores:
-            best_sub, sub_score = max(subtype_scores.items(), key=lambda x: x[1])
-
-            if sub_score >= threshold_sub:
-                final_label = best_sub
-            else:
-                final_label = best_lineage
-        else:
-            final_label = best_lineage
-
         cluster_annotations[cluster] = final_label
 
         # =========================
-        # 5️⃣ 保存score信息（用于debug/论文）
+        # 4️⃣ 保存 score（🔥核心）
         # =========================
         cluster_scores[cluster] = {
             "best_lineage": best_lineage,
@@ -233,15 +228,13 @@ def annotate_by_marker_voting(
         }
 
     # =========================
-    # 6️⃣ 写入 adata
+    # 5️⃣ 写入 adata
     # =========================
     adata.obs["celltype"] = adata.obs["leiden"].map(cluster_annotations)
-
-    # 防止category报错
     adata.obs["celltype"] = adata.obs["celltype"].astype("category")
 
     # =========================
-    # 7️⃣ summary table（可选但强烈推荐）
+    # 6️⃣ summary（你原来的）
     # =========================
     score_summary = pd.DataFrame({
         cluster: {
@@ -259,7 +252,55 @@ def annotate_by_marker_voting(
         for cluster, v in cluster_scores.items()
     }).T
 
-    return adata, cluster_annotations, score_summary
+    # =========================
+    # 7️⃣ 🔥 cluster score table（最终版）
+    # =========================
+    records = []
+
+    for cluster, info in cluster_scores.items():
+        row = {
+            "cluster": cluster,
+            "best_lineage": info["best_lineage"],
+            "best_score": info["best_lineage_score"]
+        }
+
+        # 展开 lineage scores
+        for lineage, score in info["lineage_scores"].items():
+            row[f"{lineage}_score"] = score
+
+        sorted_lineages = sorted(
+            info["lineage_scores"].items(),
+            key=lambda x: x[1],
+            reverse=True
+        )
+
+        # 安全处理（🔥关键）
+        if len(sorted_lineages) > 0:
+            row["top1"] = sorted_lineages[0][0]
+            row["top1_score"] = sorted_lineages[0][1]
+        else:
+            row["top1"] = None
+            row["top1_score"] = None
+
+        if len(sorted_lineages) > 1:
+            row["top2"] = sorted_lineages[1][0]
+            row["top2_score"] = sorted_lineages[1][1]
+        else:
+            row["top2"] = None
+            row["top2_score"] = None
+
+        records.append(row)
+
+    score_df = pd.DataFrame(records)
+
+    # 防止 None 排序问题（🔥关键）
+    score_df["best_score"] = pd.to_numeric(score_df["best_score"], errors="coerce")
+    score_df = score_df.sort_values("best_score", ascending=False)
+
+    # 存进 adata
+    adata.uns["cluster_scores"] = score_df
+
+    return adata, cluster_annotations, score_summary, score_df
 
 def apply_celltype_colors(adata, celltype_colors_dict):
     """

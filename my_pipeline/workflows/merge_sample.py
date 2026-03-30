@@ -5,7 +5,8 @@ import anndata as ad
 from src.qc import run_qc
 from src.preprocess import run_preprocess
 from src.reduce import run_umap
-from src.robustness import check_10x
+from src.robustness import check_10x,check_marker_coverage
+from src.markers import hierarchical_markers 
 
 def run_multi_sample(samples, params):
     adatas = []
@@ -44,7 +45,12 @@ def run_multi_sample(samples, params):
         adata,
         n_hvg=params["preprocess"]["n_hvg"]
     )
+    missing = check_marker_coverage(adata, hierarchical_markers)
+    if missing:
+        print(f"⚠️ Adding {len(missing)} missing markers into HVG")
+        print(missing[:10], "...")
 
+        adata.var["highly_variable"] |= adata.var_names.isin(missing)
     # 🔥 Integration（核心）
     method = params["integrate"]["method"]
     key = params["integrate"]["key"]
@@ -54,14 +60,16 @@ def run_multi_sample(samples, params):
     if method == "harmony":
         print("[INTEGRATION] Harmony")
 
-        # 🔥 必须加这三步
         sc.pp.scale(adata, max_value=10)
         # sc.tl.pca(adata, svd_solver="arpack", n_comps=50) # pca用全部基因
         sc.tl.pca(adata, use_highly_variable=True) # pca用HVG基因
-        print("X_pca shape:", adata.obsm["X_pca"].shape)
-        print("X_pca:", type(adata.obsm["X_pca"]))
-        print(adata.obs["sample"].value_counts())
-        print(adata.obs["sample"].unique())
+        # print("X_pca shape:", adata.obsm["X_pca"].shape)
+        # print("X_pca:", type(adata.obsm["X_pca"]))
+        # print(adata.obs["sample"].value_counts())
+        # print(adata.obs["sample"].unique())
+        hvg = adata.var["highly_variable"]
+        ery_genes = ["HBA1", "HBA2", "HBD", "ALAS2"]
+        print(adata.var.loc[ery_genes, "highly_variable"])
         sce.pp.harmony_integrate(adata, key=key)
 
         use_rep = "X_pca_harmony"

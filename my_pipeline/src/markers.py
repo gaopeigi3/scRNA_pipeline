@@ -148,7 +148,7 @@ hierarchical_markers = {
         "subtypes": {}
     },
     "Erythroid": {
-        "general": ['HBD', 'HBM', 'AHSP', 'ALAS2','CA1', 'SLC4A1', 'IFIT1B', 'TRIM58', 'SELENBP1', 'TMCC2'],
+        "general": ['HBD', 'HBA1', 'HBA2', 'AHSP', 'ALAS2', 'SLC4A1'],
         "subtypes": {
             "Early Erythroid": ["CNRIP1", "GATA2", "ITGA2B", "TFR2",
                                 "GATA1", "KLF1", "CYTL1", "MAP7",
