@@ -110,9 +110,6 @@ celltype_colors_dict = {
 
 
 
-
-
-
 # =========================
 # 🧬 Marker system
 # =========================
@@ -260,7 +257,171 @@ def annotate_by_marker_voting(
     }).T
 
     return adata, cluster_annotations, score_summary
+# def annotate_by_marker_voting(
+#     adata,
+#     hierarchical_markers,
+#     threshold_main: float = 0.3,
+#     threshold_sub: float = 0.4
+# ):
 
+#     if "leiden" not in adata.obs:
+#         raise ValueError("Leiden clustering not found. Run clustering first.")
+
+#     import numpy as np
+#     import pandas as pd
+
+#     # =========================
+#     # 🔥 使用 raw（避免HVG丢marker）
+#     # =========================
+#     use_raw = adata.raw is not None
+#     X = adata.raw.X if use_raw else adata.X
+#     genes = adata.raw.var_names if use_raw else adata.var_names
+
+#     clusters = adata.obs["leiden"].unique()
+
+#     mean_expr = {}
+#     pct_expr = {}
+
+#     for c in clusters:
+#         idx = np.where(adata.obs["leiden"].values == c)[0]
+#         sub = X[idx]
+#         mean_expr[c] = np.asarray(sub.mean(axis=0)).ravel()
+#         pct_expr[c] = np.asarray((sub > 0).mean(axis=0)).ravel()
+
+#     mean_df = pd.DataFrame(mean_expr, index=genes).T
+#     pct_df = pd.DataFrame(pct_expr, index=genes).T
+
+#     # z-score（按cluster）
+#     z_df = (mean_df - mean_df.mean()) / (mean_df.std() + 1e-6)
+#     z_df = z_df.fillna(0)
+
+#     # =========================
+#     # 🔥 annotation
+#     # =========================
+#     cluster_annotations = {}
+#     cluster_scores = {}
+
+#     for cluster in mean_df.index:
+
+#         lineage_scores = {}
+
+#         # =========================
+#         # 1️⃣ lineage scoring（升级版）
+#         # =========================
+#         for lineage, info in hierarchical_markers.items():
+#             genes_list = [g for g in info["general"] if g in mean_df.columns]
+#             if not genes_list:
+#                 continue
+
+#             mean = mean_df.loc[cluster, genes_list].mean()
+#             pct = pct_df.loc[cluster, genes_list].mean()
+#             z = z_df.loc[cluster, genes_list].mean()
+
+#             score = 0.5 * mean + 0.3 * pct + 0.2 * z
+#             lineage_scores[lineage] = score
+
+#         if not lineage_scores:
+#             cluster_annotations[cluster] = "Unknown"
+#             continue
+
+#         # 排序
+#         sorted_lineages = sorted(lineage_scores.items(), key=lambda x: x[1], reverse=True)
+#         best_lineage, best_score = sorted_lineages[0]
+
+#         # =========================
+#         # 2️⃣ main threshold
+#         # =========================
+#         if best_score < threshold_main:
+#             cluster_annotations[cluster] = "Unknown"
+#             continue
+
+#         # =========================
+#         # 3️⃣ subtype scoring（同样升级）
+#         # =========================
+#         subtypes = hierarchical_markers[best_lineage]["subtypes"]
+#         subtype_scores = {}
+
+#         for subtype, genes_list in subtypes.items():
+#             genes_list = [g for g in genes_list if g in mean_df.columns]
+#             if not genes_list:
+#                 continue
+
+#             mean = mean_df.loc[cluster, genes_list].mean()
+#             pct = pct_df.loc[cluster, genes_list].mean()
+#             z = z_df.loc[cluster, genes_list].mean()
+
+#             subtype_scores[subtype] = 0.5 * mean + 0.3 * pct + 0.2 * z
+
+#         # =========================
+#         # 4️⃣ final decision
+#         # =========================
+#         if subtype_scores:
+#             sorted_sub = sorted(subtype_scores.items(), key=lambda x: x[1], reverse=True)
+#             best_sub, sub_score = sorted_sub[0]
+
+#             if sub_score >= threshold_sub:
+#                 final_label = best_sub
+#             else:
+#                 final_label = best_lineage
+#         else:
+#             final_label = best_lineage
+
+#         cluster_annotations[cluster] = final_label
+
+#         # =========================
+#         # 🔥 新增：confidence / entropy
+#         # =========================
+#         scores = np.array([v for _, v in sorted_lineages])
+#         probs = np.exp(scores) / np.exp(scores).sum()
+
+#         top1 = scores[0]
+#         top2 = scores[1] if len(scores) > 1 else 0
+
+#         confidence = top1 - top2
+#         entropy = -np.sum(probs * np.log(probs + 1e-9))
+
+#         # =========================
+#         # 5️⃣ 保存score信息（兼容旧结构 + 增强）
+#         # =========================
+#         cluster_scores[cluster] = {
+#             "best_lineage": best_lineage,
+#             "best_lineage_score": best_score,
+#             "lineage_scores": lineage_scores,
+#             "top_subtypes": sorted(subtype_scores.items(), key=lambda x: x[1], reverse=True)[:3],
+#             # 🔥新增
+#             "confidence": float(confidence),
+#             "entropy": float(entropy)
+#         }
+
+#     # =========================
+#     # 6️⃣ 写入 adata
+#     # =========================
+#     adata.obs["celltype"] = adata.obs["leiden"].map(cluster_annotations)
+#     adata.obs["celltype"] = adata.obs["celltype"].astype("category")
+
+#     # =========================
+#     # 7️⃣ summary（保持你原来的格式）
+#     # =========================
+#     score_summary = pd.DataFrame({
+#         cluster: {
+#             **{
+#                 f"main_type_{i+1}": sorted(v["lineage_scores"].items(), key=lambda x: x[1], reverse=True)[i][0]
+#                 if len(v["lineage_scores"]) > i else None
+#                 for i in range(3)
+#             },
+#             **{
+#                 f"main_score_{i+1}": sorted(v["lineage_scores"].items(), key=lambda x: x[1], reverse=True)[i][1]
+#                 if len(v["lineage_scores"]) > i else None
+#                 for i in range(3)
+#             },
+#             # 🔥额外信息（不影响原逻辑）
+#             "confidence": v.get("confidence"),
+#             "entropy": v.get("entropy")
+#         }
+#         for cluster, v in cluster_scores.items()
+#     }).T
+
+#     return adata, cluster_annotations, score_summary
 def apply_celltype_colors(adata, celltype_colors_dict):
     """
     根据 celltype 设置 scanpy 颜色
@@ -278,3 +439,28 @@ def apply_celltype_colors(adata, celltype_colors_dict):
     return adata
 
     
+
+
+# def compute_cluster_stats(adata, use_raw=True, threshold=0):
+#     X = adata.raw.X if (use_raw and adata.raw is not None) else adata.X
+#     genes = adata.raw.var_names if (use_raw and adata.raw is not None) else adata.var_names
+
+#     clusters = adata.obs["leiden"].unique()
+
+#     mean_expr = {}
+#     pct_expr = {}
+
+#     for c in clusters:
+#         idx = adata.obs["leiden"] == c
+#         sub = X[idx]
+
+#         mean_expr[c] = np.asarray(sub.mean(axis=0)).ravel()
+#         pct_expr[c] = np.asarray((sub > threshold).mean(axis=0)).ravel()
+
+#     mean_df = pd.DataFrame(mean_expr, index=genes).T
+#     pct_df = pd.DataFrame(pct_expr, index=genes).T
+
+#     # z-score（按cluster）
+#     z_df = (mean_df - mean_df.mean()) / (mean_df.std() + 1e-6)
+
+#     return mean_df, pct_df, z_df
