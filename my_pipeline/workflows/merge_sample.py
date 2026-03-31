@@ -55,6 +55,7 @@ def run_multi_sample(samples, params):
         print("[INTEGRATION] Harmony")
 
         # 🔥 必须加这三步
+        adata.raw = adata.copy()
         sc.pp.scale(adata, max_value=10)
         sc.tl.pca(adata, svd_solver="arpack", n_comps=50, use_highly_variable=True)
         print("X_pca shape:", adata.obsm["X_pca"].shape)
