@@ -14,57 +14,6 @@ from src.annotation import celltype_colors_dict
 import datetime
 from src.visualize import plot_umap_all, plot_umap_per_sample
 
-
-# def run_pipeline(sample, path, params, outdir="data/processed"):
-#     print(f"=== {sample} ===")
-
-#     # load
-#     adata = sc.read_10x_mtx(path, var_names="gene_symbols", cache=True)
-
-#     # QC
-#     adata = run_qc(
-#         adata,
-#         min_genes=params["qc"]["min_genes"],
-#         max_mt=params["qc"]["max_mt"]
-#     )
-
-#     # preprocess
-#     adata = run_preprocess(
-#         adata,
-#         n_hvg=params["preprocess"]["n_hvg"]
-#     )
-
-
-#     # reduce
-#     adata = run_umap(
-#         adata,
-#         n_neighbors=params["reduce"]["n_neighbors"],
-#         resolution=params["reduce"]["resolution"]
-#     )
-
-#     # annotation
-#     adata, cluster_map, summary = annotate_by_marker_voting(
-#         adata,
-#         hierarchical_markers,
-#         threshold_main=params["annotation"]["threshold_main"],
-#         threshold_sub=params["annotation"]["threshold_sub"]
-#     )
-
-#     os.makedirs("logs", exist_ok=True)
-#     summary.to_csv(f"logs/{sample}_annotation_summary.csv")
-
-#     # color
-#     adata = apply_celltype_colors(adata, celltype_colors_dict)
-
-#     # plot
-#     plot_umap(adata, sample)
-
-#     # save
-#     os.makedirs(outdir, exist_ok=True)
-#     adata.write(f"{outdir}/{sample}.h5ad")
-
-#     print(f"✅ Done {sample}")
-
 from workflows.single_sample import run_single_sample
 from workflows.merge_sample import run_multi_sample
 def main():
@@ -73,7 +22,7 @@ def main():
     parser.add_argument(
         "--config",
         type=str,
-        default="config/config.yaml",
+        default="config/reduction_config.yaml",
         help="Path to config file"
     )
 
