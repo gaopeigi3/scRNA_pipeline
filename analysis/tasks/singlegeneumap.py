@@ -88,9 +88,10 @@ def run(cfg):
                 cmap=cfg["plot"]["cmap"],
                 vmin=cfg["plot"]["vmin"],
                 vmax=cfg["plot"]["vmax"],
+                title=f"{gene}_{s}" ,
             )
 
-            outfile = os.path.join(gene_dir, f"{s}.png")
+            outfile = os.path.join(gene_dir, f"{gene}_{s}.png")
             plt.savefig(outfile, dpi=cfg["plot"]["dpi"])
             plt.close()
 
