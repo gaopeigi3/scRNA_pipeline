@@ -1,9 +1,6 @@
 from pathlib import Path
 import argparse
 
-# =========================
-# 📦 模板定义
-# =========================
 
 TEMPLATES = {
     "config/config.yaml": """\
