@@ -1,0 +1,31 @@
+project: scRNA_pipeline
+
+samples:
+  MR1_0: data/raw/GEX_MR1_Mid_0_3GEX/filtered_feature_bc_matrix
+  MR1_80: data/raw/GEX_MR1_Mid_80_3GEX/filtered_feature_bc_matrix
+  MV4_11: data/raw/GEX_MV4_11_ITD5_3GEX/filtered_feature_bc_matrix
+  MV4_TP53fs_2: data/raw/GEX_MV4_TP53fs_2_5GEX/filtered_feature_bc_matrix
+
+paths:
+  raw: data/raw
+  processed: data/processed
+
+params:
+  qc:
+    min_genes: 200
+    max_mt: 0.05
+
+  preprocess:
+    n_hvg: 2000
+
+  reduce:
+    n_neighbors: 15
+    resolution: 0.8
+
+  integrate:
+    method: harmony
+    key: sample
+
+  annotation:
+    threshold_main: 0.3
+    threshold_sub: 0.4

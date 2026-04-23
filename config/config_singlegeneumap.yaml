@@ -1,0 +1,25 @@
+adata: /home/peigao/projects/scRNA_pipeline/data/processed/merged.h5ad
+
+sample_key: sample
+samples:
+  MR1_0: data/raw/GEX_MR1_Mid_0_3GEX
+  MR1_80: data/raw/GEX_MR1_Mid_80_3GEX
+  MV4_11: data/raw/GEX_MV4_11_ITD5_3GEX
+genes:
+  - CD74
+  - CDK6
+gene_family: true  
+
+output_dir: results/singlegeneumap
+
+plot:
+  dpi: 150
+  cmap: viridis
+  vmin: 0
+  vmax: 3
+
+gene_alias:
+  ERK: [MAPK1, MAPK3]
+  AMPK: [PRKAA1, PRKAA2]
+  LC3: [MAP1LC3A, MAP1LC3B]
+  mTOR: [MTOR]
