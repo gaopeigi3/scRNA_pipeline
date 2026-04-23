@@ -1,0 +1,11 @@
+rule all:
+    input:
+        expand("data/processed/{sample}.h5ad", sample=["sample1"])
+
+rule process:
+    input:
+        "data/raw/{sample}/filtered_feature_bc_matrix"
+    output:
+        "data/processed/{sample}.h5ad"
+    shell:
+        "python workflows/main.py"

@@ -14,3 +14,4 @@
 
 # 可选：允许 .gitignore 自己
 !.gitignore
+!Snakefile
