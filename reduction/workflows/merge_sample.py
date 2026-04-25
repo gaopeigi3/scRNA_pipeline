@@ -1,6 +1,7 @@
 import scanpy as sc
 import scanpy.external as sce
 import anndata as ad
+import harmonypy as hm
 
 from src.qc import run_qc
 from src.preprocess import run_preprocess
@@ -15,7 +16,6 @@ def run_multi_sample(samples, params):
         check_10x(path)
         adata = sc.read_10x_mtx(path, var_names="gene_symbols", cache=True)
 
-        # 🔥 metadata（必须）
         adata.obs["sample"] = sample
 
         # QC（per sample）
@@ -24,7 +24,6 @@ def run_multi_sample(samples, params):
             min_genes=params["qc"]["min_genes"],
             max_mt=params["qc"]["max_mt"]
         )
-        # 🔥 保证 clean index
         adata.obs_names_make_unique()
 
         adatas.append(adata)
@@ -36,7 +35,7 @@ def run_multi_sample(samples, params):
     adata = ad.concat(
         adatas,
         label="sample",
-        keys=list(samples.keys())   # 🔥关键
+        keys=list(samples.keys())
     )
     adata.obs["sample"] = adata.obs["sample"].astype("category")
     # preprocess

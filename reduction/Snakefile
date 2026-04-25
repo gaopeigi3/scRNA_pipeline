@@ -1,11 +1,14 @@
 rule all:
     input:
-        expand("data/processed/{sample}.h5ad", sample=["sample1"])
+        "../data/processed/merged.h5ad"
 
-rule process:
-    input:
-        "data/raw/{sample}/filtered_feature_bc_matrix"
+rule run_pipeline:
     output:
-        "data/processed/{sample}.h5ad"
+        "../data/processed/merged.h5ad"
     shell:
-        "python workflows/main.py"
+        """
+        export CUDA_VISIBLE_DEVICES=""
+        PYTHONPATH=. python workflows/main.py \
+            --config ../config/config_reduction.yaml \
+            --mode merge
+        """
