@@ -1,0 +1,1 @@
+~/projects/scRNA_pipeline/reduction$ snakemake -j 1

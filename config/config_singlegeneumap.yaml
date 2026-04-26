@@ -10,7 +10,7 @@ genes:
   - CDK6
 gene_family: true  
 
-output_dir: results/singlegeneumap
+output_dir: ../results/singlegeneumap
 
 plot:
   dpi: 150

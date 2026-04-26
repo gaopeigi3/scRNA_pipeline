@@ -7,3 +7,7 @@ Input:
 
 Output:
   - results/umap_gene/{gene}/{sample}.png
+
+
+~/projects/scRNA_pipeline/analysis$ PYTHONPATH=. python ./tasks/singlegeneumap.py \
+    --config ../config/config_singlegeneumap.yaml
