@@ -6,8 +6,7 @@ samples:
   MR1_80: data/raw/GEX_MR1_Mid_80_3GEX
   MV4_11: data/raw/GEX_MV4_11_ITD5_3GEX
 genes:
-  - CD74
-  - CDK6
+  - MYC
 gene_family: true  
 
 output_dir: ../results/singlegeneumap

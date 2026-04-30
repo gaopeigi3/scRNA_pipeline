@@ -2,11 +2,16 @@ import scanpy as sc
 import scanpy.external as sce
 import anndata as ad
 import harmonypy as hm
-
+import numpy as np
 from src.qc import run_qc
-from src.preprocess import run_preprocess
+from src.preprocess import clean_genes, run_preprocess
 from src.reduce import run_umap
 from src.robustness import check_10x
+# import os
+# os.environ["OMP_NUM_THREADS"] = "1"
+# os.environ["MKL_NUM_THREADS"] = "1"
+# os.environ["OPENBLAS_NUM_THREADS"] = "1"
+
 
 def run_multi_sample(samples, params):
     adatas = []
@@ -37,6 +42,9 @@ def run_multi_sample(samples, params):
         label="sample",
         keys=list(samples.keys())
     )
+
+    adata = clean_genes(adata, remove_mt=True, remove_ribo=True)
+
     adata.obs["sample"] = adata.obs["sample"].astype("category")
     # preprocess
     adata = run_preprocess(
@@ -54,13 +62,20 @@ def run_multi_sample(samples, params):
         print("[INTEGRATION] Harmony")
 
         # 🔥 必须加这三步
-        adata.raw = adata.copy()
+        # adata.raw = adata.copy()
         sc.pp.scale(adata, max_value=10)
-        sc.tl.pca(adata, svd_solver="arpack", n_comps=50, use_highly_variable=True)
-        print("X_pca shape:", adata.obsm["X_pca"].shape)
-        print("X_pca:", type(adata.obsm["X_pca"]))
-        print(adata.obs["sample"].value_counts())
-        print(adata.obs["sample"].unique())
+        sc.tl.pca(
+            adata,
+            svd_solver="arpack",
+            n_comps=50,
+            use_highly_variable=True
+        )
+
+        # X = adata.obsm["X_pca"]
+        # print("PCA shape:", X.shape)
+        # print("NaN:", np.isnan(X).sum())
+        # print("Inf:", np.isinf(X).sum())
+        # print("max:", X.max(), "min:", X.min())
         sce.pp.harmony_integrate(adata, key=key)
 
         use_rep = "X_pca_harmony"
